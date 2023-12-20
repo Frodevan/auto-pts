@@ -58,18 +58,18 @@ def flush_serial(tty):
                                'continue;', 'done'])
 
 
-def apply_overlay(zephyr_wd, cfg_name, overlay):
+def apply_overlay(zephyr_wd, cfg_name, overlay, source_folder):
     """Duplicates default_conf configuration file and applies overlay changes
     to it.
     :param zephyr_wd: Zephyr source path
     :param cfg_name: new configuration file name
     :param overlay: defines changes to be applied
+    :param source_folder: relative folder for where the test-app source is located
     :return: None
     """
-    tester_app_dir = os.path.join(zephyr_wd, "tests", "bluetooth", "tester")
     cwd = os.getcwd()
 
-    os.chdir(tester_app_dir)
+    os.chdir(os.path.join(zephyr_wd, source_folder))
 
     with open(cfg_name, 'w') as config:
         for k, v in list(overlay.items()):
@@ -171,6 +171,8 @@ class ZephyrBotClient(BotClient):
         self.config_default = "prj.conf"
 
     def apply_config(self, args, config, value):
+        source_folder_app = value.get('source_folder_app', os.path.join("tests", "bluetooth", "tester"))
+        source_folder_net = value.get('source_folder_net', os.path.join("tests", "bluetooth", "tester"))
         pre_overlay = value.get('pre_overlay', [])
         if type(pre_overlay) == str:
             pre_overlay = [pre_overlay]
@@ -182,9 +184,10 @@ class ZephyrBotClient(BotClient):
         configs = []
         for name in pre_overlay + [config] + post_overlay:
             if name in self.iut_config and 'overlay' in self.iut_config[name] \
-                    and len(self.iut_config[name]['overlay']):
+                    and len(self.iut_config[name]['overlay']) and name != 'prj.conf':
                 apply_overlay(args.project_path, name,
-                              self.iut_config[name]['overlay'])
+                              self.iut_config[name]['overlay'],
+                              source_folder_app)
             elif not os.path.exists(os.path.join(args.project_path, "tests", "bluetooth", "tester", name)):
                 log(f'Overlay {name} is not a file.')
                 continue
@@ -202,7 +205,8 @@ class ZephyrBotClient(BotClient):
 
             try:
                 build_and_flash(args.project_path, board_type, args.debugger_snr,
-                                overlays, args.project_repos)
+                                overlays, args.project_repos, src_dir_app = source_folder_app,
+                                src_dir_net = source_folder_net)
 
                 flush_serial(args.tty_file)
             except:

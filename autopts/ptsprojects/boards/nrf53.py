@@ -19,7 +19,7 @@ from autopts.bot.common import check_call
 board_type = 'nrf5340dk_nrf5340_cpuapp'
 
 
-def build_and_flash(zephyr_wd, board, debugger_snr, conf_file=None, *args):
+def build_and_flash(zephyr_wd, board, debugger_snr, conf_file=None, *args, **kwargs):
     """Build and flash Zephyr binary
     :param zephyr_wd: Zephyr source path
     :param board: IUT

@@ -205,6 +205,7 @@ class ZephyrCtl:
 
     def rtt_logger_stop(self):
         if self.rtt_logger:
+            time.sleep(4)
             self.rtt_logger.stop()
 
     def wait_iut_ready_event(self, reset=True):
