@@ -48,23 +48,6 @@ def build_and_flash(zephyr_wd, board, debugger_snr, conf_file=None, *args):
     :param debugger_snr serial number
     :param conf_file: configuration file to be used
     """
-    source_dir = os.getenv("AUTOPTS_SOURCE_DIR_APP")
-    if source_dir is None:
-        source_dir = os.path.join('tests', 'bluetooth', 'tester')
-
-    logging.debug("%s: %s %s %s %s", build_and_flash.__name__, zephyr_wd,
-                  board, conf_file, source_dir)
-
-    app_core_configs = []
-    if conf_file and conf_file != 'default' and conf_file != 'prj.conf':
-        app_core_configs = [f'EXTRA_CONF_FILE=\'{conf_file}\'']
-
-    build_and_flash_core(zephyr_wd,
-                         source_dir,
-                         board,
-                         debugger_snr,
-                         app_core_configs,
-                         True)
 
     config_dir_net = os.getenv("AUTOPTS_SOURCE_DIR_NET")
     if config_dir_net is None:
@@ -74,8 +57,28 @@ def build_and_flash(zephyr_wd, board, debugger_snr, conf_file=None, *args):
         conf_path = os.path.join(zephyr_wd, config_dir_net, 'hci_ipc.conf')
         net_core_configs = [f'EXTRA_CONF_FILE=\'{conf_path}\'']
 
+    logging.debug("hci_ipc: %s %s %s", zephyr_wd, 'nrf5340_audio_dk/nrf5340/cpunet', conf_path)
+
     build_and_flash_core(zephyr_wd,
                          os.path.join('samples', 'bluetooth', 'hci_ipc'),
                          'nrf5340_audio_dk/nrf5340/cpunet',
                          debugger_snr,
-                         net_core_configs)
+                         net_core_configs,
+                         True)
+
+    source_dir = os.getenv("AUTOPTS_SOURCE_DIR_APP")
+    if source_dir is None:
+        source_dir = os.path.join('tests', 'bluetooth', 'tester')
+
+    app_core_configs = []
+    if conf_file and conf_file != 'default' and conf_file != 'prj.conf':
+        app_core_configs = [f'EXTRA_CONF_FILE=\'{conf_file}\'']
+
+    logging.debug("%s: %s %s %s %s", build_and_flash.__name__, zephyr_wd,
+                  board, conf_file, source_dir)
+
+    build_and_flash_core(zephyr_wd,
+                         source_dir,
+                         board,
+                         debugger_snr,
+                         app_core_configs)
